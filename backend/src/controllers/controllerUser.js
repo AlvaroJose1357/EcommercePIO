@@ -61,7 +61,7 @@ exports.obtenerPerfilUsuario = async (req, res) => {
     if (resultado.rows.length === 0) {
       return res.status(404).json({ message: "Usuario no encontrado" });
     }
-    res.status(200).json(usuario);
+    res.status(200).json({ usuario: resultado.rows[0] });
   } catch (error) {
     res.status(500).json({
       message: "Error al obtener el perfil del Usuario en el servidor",
