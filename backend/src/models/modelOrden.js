@@ -1,11 +1,7 @@
 const mongoose = require("mongoose");
 
 const OrdenSchema = new mongoose.Schema({
-  usuario: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-  },
+  usuarioID: { type: Number, required: true }, // ID del usuario que realizó la compra y con number para coincidir con postgres
   carrito: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Cart",

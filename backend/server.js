@@ -25,11 +25,12 @@ connectBDPostgres();
 // Rutas
 //app.use("/api/autenticacion", require("./src/routes/routesAuth"));
 app.use("/api/carrito", require("./src/routes/routesCart"));
-app.use("/api/categoria", require("./src/routes/routesCategoryProduct"));
-app.use("/api/orden", require("./src/routes/routesOrden"));
+app.use("/api/categorias", require("./src/routes/routesCategoryProduct"));
+app.use("/api/ordenes", require("./src/routes/routesOrden"));
 app.use("/api/productos", require("./src/routes/routesProducts"));
 app.use("/api/usuarios", require("./src/routes/routesUser"));
 
+// Ruta protegida (perfil del usuario)
 app.get("/api/usuarios/perfil", middlewareAuth, (req, res) => {
   res.status(200).json({ mensaje: "Perfil de usuario", usuario: req.user });
 });
@@ -44,6 +45,7 @@ app.use((error, req, res, next) => {
   });
 });
 
+// Middleware para rutas no encontradas
 app.use((error, req, res, next) => {
   res.status(404).json({
     mensaje: "No se encontró la ruta solicitada",

@@ -1,9 +1,21 @@
 const Cart = require("../models/modelCart");
 const Product = require("../models/modelProducts");
+const { pool } = require("../config/baseDatosPg");
 
 exports.crearCarrito = async (req, res) => {
   const { usuarioID, productos } = req.body;
   try {
+    // verifica si el usuario existe en PostgreSQL
+    const usuarioResult = await pool.query(
+      "SELECT * FROM usuarios WHERE id = $1",
+      [usuarioID]
+    );
+    if (usuarioResult.rowCount === 0) {
+      return res
+        .status(404)
+        .json({ message: "Usuario no encontrado en PostgreSQL" });
+    }
+    // verifica si los productos existen en MongoDB
     const productosIds = productos.map((p) => p.producto);
     const productosValidos = await Product.find({
       _id: { $in: productosIds },
@@ -13,7 +25,14 @@ exports.crearCarrito = async (req, res) => {
         .status(400)
         .json({ message: "Uno o más productos no son válidos" });
     }
-    const nuevoCarrito = new Cart(usuarioID, productos);
+    // Verificar si ya existe un carrito para el usuario
+    const carritoExistente = await Cart.findOne({ usuarioID });
+    if (carritoExistente) {
+      return res
+        .status(400)
+        .json({ message: "Ya existe un carrito para este usuario" });
+    }
+    const nuevoCarrito = new Cart({ usuarioID, productos });
     await nuevoCarrito.save();
     res
       .status(201)
@@ -29,9 +48,9 @@ exports.crearCarrito = async (req, res) => {
 exports.obtenerCarritos = async (req, res) => {
   const { usuarioID } = req.params;
   try {
-    const carritos = await Cart.findOne({
-      usuario: usuarioID,
-    }).populate("productos.producto");
+    const carritos = await Cart.findOne({ usuarioID }).populate(
+      "productos.producto"
+    );
     if (!carritos) {
       return res.status(404).json({ message: "Carritos no encontrados" });
     }
@@ -62,6 +81,7 @@ exports.obtenerCarritos = async (req, res) => {
 exports.actualizarCarrito = async (req, res) => {
   const { usuarioID, productos } = req.body;
   try {
+    //
     const productosIds = productos.map((p) => p.producto);
     const productosValidos = await Product.find({
       _id: { $in: productosIds },
@@ -71,7 +91,8 @@ exports.actualizarCarrito = async (req, res) => {
         .status(400)
         .json({ message: "Uno o más productos no son válidos" });
     }
-    const carritoActualizado = await Cart.findByIdAndUpdate(
+    //
+    const carritoActualizado = await Cart.findOneAndUpdate(
       { usuarioID },
       { productos },
       { new: true }
@@ -93,11 +114,8 @@ exports.actualizarCarrito = async (req, res) => {
 exports.eliminarCarrito = async (req, res) => {
   const { usuarioID } = req.params;
   try {
-    const carritoEliminado = await Cart.findOneAndUpdate(
-      { usuarioID },
-      { productos: [] },
-      { new: true }
-    );
+    const carritoEliminado = await Carrito.findOneAndDelete({ usuarioID });
+
     if (!carritoEliminado) {
       return res.status(404).json({ mensaje: "Carrito no encontrado" });
     }

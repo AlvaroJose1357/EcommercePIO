@@ -1,56 +1,82 @@
 const Orden = require("../models/modelOrden");
 const Cart = require("../models/modelCart");
+const { pool } = require("../config/baseDatosPg");
 
 exports.crearOrdenDesdeCarrito = async (req, res) => {
   const { usuarioID } = req.params;
   try {
-    const carrito = await Cart.findOne({ usuarioID: usuarioID }).populate(
-      "productos.producto"
-    );
-    if (!carrito) {
-      return res.status(404).json({ mensaje: "Carrito no encontrado" });
+    // Verifica que el usuarioID sea válido
+    if (isNaN(usuarioID)) {
+      return res.status(400).json({ message: "ID de usuario inválido" });
     }
+
+    // Valida si el usuario existe en la base de datos PostgreSQL
+    const usuarioResult = await pool.query(
+      "SELECT * FROM usuarios WHERE id = $1",
+      [usuarioID]
+    );
+    if (usuarioResult.rows.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "Usuario no encontrado en PostgreSQL" });
+    }
+
+    // Busca el carrito asociado al usuario en MongoDB
+    const carrito = await Cart.findOne({
+      usuarioID: parseInt(usuarioID),
+    }).populate("productos.producto");
+
+    if (!carrito) {
+      return res.status(404).json({
+        message: "Carrito no encontrado para el usuario especificado",
+      });
+    }
+
+    // Procesa los productos y calcula el total
     let total = 0;
     const productosOrden = carrito.productos.map((producto) => {
       const precio = producto.producto.precio * producto.cantidad;
       total += precio;
       return {
-        producto: producto.producto,
+        producto: producto.producto._id,
         cantidad: producto.cantidad,
-        precio: precio,
+        precio,
       };
     });
+
+    // Crea la nueva orden
     const nuevaOrden = new Orden({
-      usuarioID: usuarioID,
-      carritoID: carrito._id,
+      usuarioID: parseInt(usuarioID),
+      carrito: carrito._id, // Asegúrate de usar el campo `carrito`
       productos: productosOrden,
-      total: total,
+      total,
     });
+
     await nuevaOrden.save();
-    await Cart.findByIdAndUpdate({ usuarioID: usuarioID }, { productos: [] });
+
+    // Vacía el carrito después de crear la orden
+    await Cart.findByIdAndUpdate(carrito._id, { productos: [] }); // Usa `carrito._id`
+
     res.status(201).json(nuevaOrden);
   } catch (error) {
     res.status(500).json({
-      mensaje: "Error al crear la orden en el servidor",
+      message: "Error al crear la orden en el servidor",
       error: error.message,
     });
   }
 };
 
 exports.obtenerOrden = async (req, res) => {
-  const { usuarioID, ordenID } = req.params;
+  const { ordenID } = req.params;
   try {
-    const ordenes = await Orden.findOne({
-      _id: ordenID,
-      usuarioID: usuarioID,
-    }).populate("productos.producto");
-    if (!ordenes) {
-      return res.status(404).json({ mensaje: "Ordenes no encontradas" });
+    const orden = await Orden.findById(ordenID).populate("productos.producto");
+    if (!orden) {
+      return res.status(404).json({ message: "Orden no encontrada" });
     }
-    res.status(200).json(ordenes);
+    res.status(200).json({ message: "Orden encontrada", orden });
   } catch (error) {
     res.status(500).json({
-      mensaje: "Error al obtener las ordenes en el servidor",
+      message: "Error al obtener las ordenes en el servidor",
       error: error.message,
     });
   }
