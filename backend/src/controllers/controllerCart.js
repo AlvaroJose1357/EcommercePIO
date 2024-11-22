@@ -114,7 +114,7 @@ exports.actualizarCarrito = async (req, res) => {
 exports.eliminarCarrito = async (req, res) => {
   const { usuarioID } = req.params;
   try {
-    const carritoEliminado = await Carrito.findOneAndDelete({ usuarioID });
+    const carritoEliminado = await Cart.findOneAndDelete({ usuarioID });
 
     if (!carritoEliminado) {
       return res.status(404).json({ mensaje: "Carrito no encontrado" });
