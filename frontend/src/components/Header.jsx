@@ -1,4 +1,4 @@
-import { faUser } from "@fortawesome/free-solid-svg-icons";
+import { faUser, faUserPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -43,11 +43,26 @@ export default function Header() {
               </button>
             </>
           ) : (
-            <Link
-              to="/login"
-              className="hover:text-gray-300">
-              Iniciar Sesión
-            </Link>
+            <>
+              <Link
+                to="/login"
+                className="hover:text-gray-300 flex">
+                <FontAwesomeIcon
+                  icon={faUser}
+                  className="text-gray-300 mx-2 pt-1"
+                />
+                <p className="hover:underline">Login</p>
+              </Link>
+              <Link
+                to="/register"
+                className="hover:text-gray-300 flex">
+                <FontAwesomeIcon
+                  icon={faUserPlus}
+                  className="text-gray-300 mx-2 pt-1"
+                />
+                <p className="hover:underline">Register</p>
+              </Link>
+            </>
           )}
         </div>
       </nav>
