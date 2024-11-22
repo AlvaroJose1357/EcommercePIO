@@ -5,6 +5,11 @@ const jwt = require("jsonwebtoken");
 exports.registrarUsuario = async (req, res) => {
   const { nombre, correo, password, direccion, telefono, rol } = req.body;
   try {
+    if (!nombre || !correo || !password || !direccion || !telefono) {
+      return res
+        .status(400)
+        .json({ message: "Todos los campos son obligatorios" });
+    }
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await pool.query(
       "INSERT INTO usuarios (nombre, correo, password, direccion, telefono, rol) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",

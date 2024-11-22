@@ -1,7 +1,12 @@
 import axios from "axios";
 
+const reactenv = import.meta.env.VITE_REACT_APP_API_URL;
+
 const api = axios.create({
-  baseURL: `${import.meta.env.VITE_REACT_APP_BASE_URL}`,
+  baseURL: `${reactenv}`,
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
 api.interceptors.request.use((config) => {

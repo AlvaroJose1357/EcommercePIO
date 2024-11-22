@@ -1,10 +1,37 @@
-import "./App.css";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import Header from "./components/Header";
+import Home from "./components/Home";
+import Login from "./components/Login";
+import Register from "./components/Register";
+import Productos from "./components/Productos";
 
 function App() {
   return (
-    <>
-      <h1>HOLA jajaja</h1>
-    </>
+    <BrowserRouter>
+      <Header />
+      <Routes>
+        <Route
+          path="/"
+          element={<Home />}
+        />
+        <Route
+          path="/login"
+          element={<Login />}
+        />
+        <Route
+          path="/register"
+          element={<Register />}
+        />
+        <Route
+          path="*"
+          element={<h1>404 Not Found</h1>}
+        />
+        <Route
+          path="/productos"
+          element={<Productos />}
+        />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
